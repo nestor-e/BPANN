@@ -2,8 +2,9 @@
 #include <fstream>
 #include <vector>
 #include <cstdlib>
+#include "Layer.h"
+#include "Network.h"
 
-using namespace std;
 
 int main(int argc, char* argv[]){
 		const int x = atoi(argv[1]);
