@@ -17,7 +17,7 @@ class Layer{
 		Vector out;
 		Vector delta;
 		void forward();
-		void backPropagateData();
+		void backPropagateDelta();
 	public:
 		Layer(int size, Layer prev, bool useBias);
 		Layer(int outSize, int inSize, bool useBias);
@@ -25,5 +25,6 @@ class Layer{
         void randomInit();
 		void forward(Vector input);
 		void backPropagateDelta(Vector expected);
+		Vector getResults();
 		void updateWeights(double speed);
 }
