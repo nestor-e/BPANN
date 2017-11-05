@@ -72,49 +72,71 @@ void Network::forward(Vector input){
     }
 }
 
+void Network::calcDeltaOL(int layer, int node, Vector* exp){
+    double thisOut = outputs[layer][node];
+    deltas[layer][node] = thisOut * (1 - thisOut) * ((*exp)[node] - thisOut);
+}
+
+void Network::calcDeltaHL(int layer, int node){
+    int oLayer = layer +  1;
+    int oSize = topology[oLayer];
+    double thisOut = outputs[layer][node];
+    double dSum = 0.0;
+    for(int i = 0; i < oSize; i++){
+        dSum += weights[oLayer][i][node] * deltas[oLayer][i];
+    }
+    deltas[layer][node] = thisOut  * (1 - thisOut) * dSum;
+}
+
+
+void Network::calcDelta(int layer, int node, Vector* ex){
+    if(layer >= outputLayer){
+        calcDeltaOL(layer, node, ex);
+    } else {
+        calcDeltaHL( layer, node);
+    }
+}
+
+void Network::updateWeightsIL(int layer, int node, Vector* in){
+    int oSize = in->size();
+    double nDelta = deltas[layer][node] * trainingSpeed;
+    for(int i = 0; i < oSize; i++){
+        weights[layer][node][i] += nDelta * (*in)[i];
+    }
+}
+
+void Network::updateWeightsHL(int layer, int node){
+    int oLayer = layer - 1;
+    int oSize =  topology[oLayer];
+    double nDelta = deltas[layer][node] * trainingSpeed;
+    for(int i = 0; i < oSize; i++){
+        weights[layer][node][i] += nDelta * outputs[oLayer][i];
+    }
+}
+
+void Network::updateWeights(int layer, int node, Vector* in){
+    if(layer <= 0){
+        updateWeightsIL( layer, node, in);
+    } else {
+        updateWeightsHL( layer, node);
+    }
+}
+
 void Network::backPropagate(Vector expected, Vector input){
     assert(expected.size() == outputSize);
     assert(topology.size() > 0);
 
-    double temp;
-    int lSize, prevSize, nextSize;
-    lSize = topology[outputLayer];
-    prevSize = (outputLayer > 0)?(topology[outputLayer - 1]):(inputSize);
-    for(int j = 0; j < lSize; j++){
-        temp = outputs[outputLayer][j];
-        temp = temp * (1 - temp) * (expected[j] - temp);
-        deltas[outputLayer][j] = temp;
-        temp = temp * trainingSpeed;
-        for(int k = 0; k < prevSize; k++){
-            weights[outputLayer][j][k] += temp;
-            if(outputLayer > 0){
-                temp *= outputs[outputLayer - 1][k];
-            } else {
-                temp *= input[k];
-            }
+    for(int layer = outputLayer; layer >= 0; layer--){
+        int nodeCount = topology[layer];
+        for(int node = 0; node < nodeCount ; node++){
+            calcDelta(layer, node, &expected);
         }
     }
 
-    for(int i = outputLayer - 1; i >= 0; i--){
-        nextSize = lSize;
-        lSize = prevSize;
-        prevSize = (i > 0)?(topology[i - 1]):(inputSize);
-        for(int j = 0; j < lSize; j++){
-            temp = 0;
-            for(int k = 0; k < nextSize; k++){
-                temp += weights[i + 1][k][j] * deltas[i + 1][k];
-            }
-            temp *= outputs[i][j] * (1 - outputs[i][j]);
-            deltas[i][j] = temp;
-            temp = temp * trainingSpeed;
-            for(int k = 0; k < prevSize; k++){
-                if(i > 0){
-                    temp *= outputs[i - 1][k];
-                } else {
-                    temp *= input[k];
-                }
-                weights[i][j][k] += temp;
-            }
+    for(int layer = outputLayer; layer >= 0; layer--){
+        int nodeCount = topology[layer];
+        for(int node = 0; node < nodeCount ; node++){
+            updateWeights(layer, node, &input);
         }
     }
 }
@@ -191,4 +213,49 @@ void Network::trainingEpoch(Data data){
 
 double Network::sigmoid(double x){
     return 1.0 / (1.0 + exp(-1.0 * x));
+}
+
+
+void Network::test(){
+    Vector in = {1, 0, 1};
+    Vector out = {1};
+    weights[0][0][0] = 0.25;
+    weights[0][0][1] = -0.3;
+    weights[0][0][2] = -0.1;
+    weights[0][1][0] = 0.5;
+    weights[0][1][1] = 0.8;
+    weights[0][1][2] = -0.2;
+    weights[1][0][0] = 0.5;
+    weights[1][0][1] = 0.4;
+    forward(in);
+    std::cout << "Forward Step:" << std::endl;
+    std::cout << "\tInput:"<< std::endl;
+    printVector(in);
+    std::cout << "\tL1: " << std::endl;
+    std::cout << "\t\tOutput: " << std::endl;
+    printVector(outputs[0]);
+    std::cout << "\t\tWeights: " << std::endl;
+    printMatrix(weights[0]);
+    std::cout << "\tL2:" << std::endl;
+    std::cout << "\t\tOutput: " << std::endl;
+    printVector(outputs[1]);
+    std::cout << "\t\tWeights: " << std::endl;
+    printMatrix(weights[1]);
+
+    std::cout << std::endl<< std::endl << "After Back:" << std::endl;
+    backPropagate(out, in);
+    std::cout << "\tL1: " << std::endl;
+    std::cout << "\t\tOutput: " << std::endl;
+    printVector(outputs[0]);
+    std::cout << "\t\tDelta: " << std::endl;
+    printVector(deltas[0]);
+    std::cout << "\t\tWeights: " << std::endl;
+    printMatrix(weights[0]);
+    std::cout << "\tL2:" << std::endl;
+    std::cout << "\t\tOutput: " << std::endl;
+    printVector(outputs[1]);
+    std::cout << "\t\tDelta: " << std::endl;
+    printVector(deltas[1]);
+    std::cout << "\t\tWeights: " << std::endl;
+    printMatrix(weights[1]);
 }

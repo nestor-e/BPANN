@@ -21,6 +21,12 @@ class Network{
 
         void forward(Vector input);
         void backPropagate(Vector desired, Vector input);
+        void calcDeltaHL(int layer, int node);
+        void calcDeltaOL(int layer, int node, Vector* exp);
+        void calcDelta(int layer, int node, Vector* exp);
+        void updateWeightsHL(int layer, int node);
+        void updateWeightsIL(int layer, int node, Vector* in);
+        void updateWeights(int layer, int node, Vector* in);
 
     public:
         Network(int inputSize, std::vector<int> top, double learningSpeed);
@@ -30,6 +36,7 @@ class Network{
         bool compareResult(Vector expected);
         Vector getResult();
         static double sigmoid(double x);
+        void test();
 
 };
 

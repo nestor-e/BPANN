@@ -78,7 +78,6 @@ bool Data::initMush(char* fileName){
             }
         }
     }
-		file.close();
     return true;
 }
 

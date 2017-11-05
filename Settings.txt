@@ -1,4 +1,4 @@
-dataFiles: Data\UCIML\mushrooms.csv 1
+dataFiles: Data/UCIML/mushrooms.csv 1
 initialWeights: -1.0 1.0
 learningSpeed: 0.1
 trainingEpochs: 100

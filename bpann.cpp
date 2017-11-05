@@ -13,7 +13,6 @@
 using namespace std;
 
 struct ProgramSettings  {
-	int trainingRounds;
 	int fileType;
 	int rounds;
 	double minWeight;
@@ -85,6 +84,7 @@ bool readSettings(char* fileName, ProgramSettings* settings){
 	settings->maxWeight = max;
 	settings->topology = levels;
 	settings->fileName = new char[dataFile.length() + 1];
+	settings->fileType = fileType;
 	for(int i = 0; i < dataFile.length(); i++){
 		settings->fileName[i] = dataFile[i];
 	}
@@ -204,5 +204,8 @@ int main(int argc, char* argv[]){
 	}
 	epochStatus.inTraining = false;
 	nw.testEpoch(d);
-	return 0;
+	// vector<int> t = {2, 1};
+	// Network nw(3, t, 0.3);
+	// nw.test();
+	// return 0;
 }
