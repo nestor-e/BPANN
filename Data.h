@@ -1,7 +1,11 @@
-#import <vector>
-#import <tuple>
+#ifndef DATA_H
+#define DATA_H
 
-typedef std::tuple<std::vector<double> , std::vector<double>> Datum;
+#include <vector>
+#include <tuple>
+#include "bpann.h"
+
+#define TEST_POP_RATE 0.15
 
 class Data{
     private:
@@ -11,39 +15,18 @@ class Data{
         std::vector< Datum > testValues;
         bool initMINST(char* fileName);
         bool initMush(char* fileName);
-        static const int[][] translationTable = {
-        //   a b c d e f g h i j k l m n o p q r s t u v w x y z
-            {0,1,2,0,0,4,0,0,0,0,5,0,0,0,0,0,0,0,6,0,0,0,0,3,0,0},
-            {0,0,0,0,0,1,2,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,3,0},
-            {0,2,3,0,8,0,4,0,0,0,0,0,0,1,0,6,0,5,0,0,7,0,9,0,10,0},
-            {0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0},
-            {1,0,3,0,0,5,0,0,0,0,0,2,6,7,0,8,0,0,9,0,0,0,0,0,4,0},
-            {1,0,0,2,0,3,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0},
-            {0,0,1,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0},
-            {0,1,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0},
-            {0,3,0,0,10,0,5,4,0,0,1,0,0,2,7,8,0,6,0,0,9,0,11,0,12,0},
-            {0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0},
-            {0,1,2,0,4,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,3,0,0,0,0,5},
-            {0,0,0,0,0,1,0,0,0,0,3,0,0,0,0,0,0,0,4,0,0,0,0,0,2,0},
-            {0,0,0,0,0,1,0,0,0,0,3,0,0,0,0,0,0,0,4,0,0,0,0,0,2,0},
-            {0,2,3,0,7,0,4,0,0,0,0,0,0,1,5,6,0,0,0,0,0,0,8,0,9,0},
-            {0,2,3,0,7,0,4,0,0,0,0,0,0,1,5,6,0,0,0,0,0,0,8,0,9,0},
-            {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,2,0,0,0,0,0},
-            {0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,0,0,0,0,0,0,0,3,0,4,0},
-            {0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,0,0,0,0,3,0,0,0,0,0,0},
-            {0,0,1,0,2,3,0,0,0,0,0,4,0,5,0,6,0,0,7,0,0,0,0,0,0,8},
-            {0,3,0,0,0,0,0,4,0,0,1,0,0,2,6,0,0,5,0,0,7,0,8,0,9,0},
-            {1,0,2,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,4,0,0,5,0,0,6,0},
-            {0,0,0,7,0,0,1,0,0,0,0,2,3,0,0,4,0,0,0,0,5,0,6,0,0,0}
-        }
-        static int mushroomTranslation(int item, char value);
+        static const double translationTable[22][26];
+        static double mushroomTranslation(int item, char value);
     public:
-        Data(int type);
+        Data(int type); // 0 = minst, 1 = Mushrooms
         bool init(char* fileName);
         Datum testItem(int idx);
         Datum trainItem(int idx);
         int testCount();
         int trainCount();
         int getInputSize();
-        int getOutoutSize();
-}
+        int getOutputSize();
+};
+
+
+#endif
