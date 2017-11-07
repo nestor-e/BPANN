@@ -1,3 +1,11 @@
+/*
+	Edward Nestor
+	CSCI 402
+	BPANN - simple back propagation neural network
+
+	bpann.cpp -- contains entry point main(), handles cmd-line argument parsing,
+	as well as most of the console IO for the program, and random nuber generation.
+*/
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -21,13 +29,6 @@ struct ProgramSettings  {
 	char* fileName;
 	vector<int>* topology;
 };
-
-struct epochStatus_st {
-	int count;
-	bool inTraining;
-	double bestAccuracy;
-	double lastAccuracy;
-} epochStatus;
 
 bool readSettings(char* fileName, ProgramSettings* settings){
 	ifstream sFile;
@@ -138,28 +139,11 @@ void printMatrix(Matrix m){
 void printUsage(){
 	cerr << "Usage: ./BpNetwork {settings file}" << endl;
 	cerr << "Settings file format:" << endl;
-	cerr << "dataFiles: {Data file path} {Type: 1 - mushrooms, 2 - MINST(not implemented)}" << endl;
+	cerr << "dataFiles: {Data file path} {Type: 1 - mushrooms, 0 - MNIST(Not Implemented)}" << endl;
 	cerr << "initialWeights: {minWeight} {maxWeight}" << endl;
 	cerr << "learningSpeed: {spped}" << endl;
 	cerr << "trainingEpochs: {max rounds}" << endl;
-	cerr << "topology: {L1} {L2} {L3}" << endl;
-}
-
-void epochResults(double accuracy, vector<Matrix> weights){
-	epochStatus.count++;
-	if(accuracy > epochStatus.bestAccuracy){
-		epochStatus.bestAccuracy = accuracy;
-	}
-	cout << "Epoch " << epochStatus.count << " completed with ";
-	cout << fixed << setprecision(2) << accuracy*100 << "% accuracy." << endl;
-	if(!epochStatus.inTraining || accuracy > (epochStatus.lastAccuracy * 1.1)){
-		epochStatus.lastAccuracy = accuracy;
-		cout << "Weights:" << endl;
-		for(int i = 0 ; i < weights.size(); i++){
-			cout << "Layer " << i + 1 << ":" << endl;
-			printMatrix(weights[i]);
-		}
-	}
+	cerr << "topology: {L1} {L2} {L3} ..." << endl;
 }
 
 void printError(const char* msg){
@@ -180,11 +164,6 @@ int main(int argc, char* argv[]){
 	}
 
 	srand(time(NULL));
-	epochStatus.count = 0;
-	epochStatus.inTraining = true;
-	epochStatus.bestAccuracy = 0;
-	epochStatus.lastAccuracy = 0;
-
 
 
 	Data d (ps.fileType);
@@ -192,20 +171,48 @@ int main(int argc, char* argv[]){
 		cerr << "Failed to parse " << ps.fileName << endl;
 		return 1;
 	}
-	if(d.getInputSize() != ps.topology->front() || d.getOutputSize() != ps.topology->back()){
+	if(d.getOutputSize() != ps.topology->back()){
 		cerr << "Topology incompatible with data." << endl;
 		return 1;
 	}
 
 	Network nw (d.getInputSize(), *(ps.topology), ps.speed);
 	nw.randomizeWeights(ps.minWeight, ps.maxWeight);
-	for(int i = 0 ; i < ps.rounds; i++){
-		nw.trainingEpoch(d);
+
+	double acc, lastAcc = 0, bestAcc = 0;
+	bool improveStep;
+	cout << "Test topology:";
+	for(int i = 0; i < ps.topology->size(); i++){
+		cout << " " << (*ps.topology)[i];
 	}
-	epochStatus.inTraining = false;
-	nw.testEpoch(d);
-	// vector<int> t = {2, 1};
-	// Network nw(3, t, 0.3);
-	// nw.test();
-	// return 0;
+	cout << endl << "Learning speed: " << ps.speed << endl;
+	cout << "Initial weights: " << endl;
+	nw.printWeights();
+	cout << "------------------------------------------------------------------";
+	cout << endl << endl;
+	clock_t startTime = clock();
+	for(int i = 1 ; i <= ps.rounds; i++){
+		acc = nw.trainingEpoch(d);
+		bestAcc = (acc > bestAcc)?(acc):(bestAcc);
+		improveStep = (1 - acc) < (1 - lastAcc) / 2;
+		if(i % 10 == 0 || improveStep){
+			cout << "Training Epoch " << i << " completed with ";
+			cout << fixed << setprecision(2) << acc*100 << "% accuracy." << endl;
+			if(improveStep){
+				lastAcc = acc;
+				nw.printWeights();
+			}
+		}
+	}
+	cout << "------------------------------------------------------------------";
+	cout << endl << endl;
+	double trainingTime = (double)(clock() - startTime)/CLOCKS_PER_SEC;
+	cout << "Training completed in ~" << setprecision(2) << trainingTime << " sec." << endl;
+	cout << "Final weights:" << endl;
+	nw.printWeights();
+	acc = nw.testEpoch(d);
+	cout << "Test Epoch completed with ";
+	cout << fixed << setprecision(2) << acc*100 << "% accuracy." << endl;
+
+	return 0;
 }

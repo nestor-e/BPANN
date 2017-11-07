@@ -1,7 +1,23 @@
+/*
+	Edward Nestor
+	CSCI 402
+	BPANN - simple back propagation neural network
+
+	Data.cpp -- contains code for parsing mushrooms.csv file and creating an object
+    to represent the data points it contains.  Interfaces with rest of program are
+    generic enough to allow support for other datasets (such as MNIST hadwritting
+    recognition data) to be added, but none are in place yet.
+*/
 #include "Data.h"
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <string.h>
+
 
 const double Data::translationTable[22][26] = {
 //   a b c d e f g h i j k l m n o p q r s t u v w x y z
@@ -38,7 +54,7 @@ bool Data::init(char* fileName){
     bool s;
     switch(type){
         case 0:
-            s = initMINST(fileName);
+            s = initMNIST(fileName);
             break;
         case 1:
             s = initMush(fileName);
@@ -50,8 +66,144 @@ bool Data::init(char* fileName){
     return s;
 }
 
-bool Data::initMINST(char* filename){
-	return false;
+
+double Data::valToDouble(unsigned char x){
+    return ((double) x) / 255;
+}
+Vector Data::valTo1Of10(unsigned char x){
+    std::vector<double> temp (10, 0);
+    int i = (int) x;
+    if(i < 0 || i > 9){
+        std::cerr << "Data parse error, output out of range" << std::endl;
+    } else {
+        temp[i] = 1.0;
+    }
+
+    return temp;
+}
+
+    //TODO: Fix this, slow and leaks memeory
+void Data::parseMinstData(void* lMap, void* iMap, bool isTrain){
+    // int items = (isTrain)?(60000):(10000);
+    // int rows = 28;
+    // int cols = 28;
+    //
+    // int lOffset = 8;
+    // int iOffset = 16;
+    //
+    // unsigned char* lStart = (unsigned char*) lMap;
+    // unsigned char* iStart = (unsigned char*) iMap;
+    // std::vector<Datum> tempData (items);
+    // for(int i = 0; i < items; i++){
+    //     if(i % 2500 == 0){
+    //         std::cout << i << " / " << items << std::endl;
+    //     }
+    //     Vector input (rows*cols);
+    //     Vector output = valTo1Of10(lStart[i + lOffset]);
+    //     for(int r = 0; r < rows; r++){
+    //         for(int c = 0; c < cols; c++){
+    //             input.push_back(valToDouble( iStart[iOffset] ));
+    //             iOffset++;
+    //         }
+    //     }
+    //     Datum d = std::make_tuple(input, output);
+    //     tempData.push_back(d);
+    //     if(isTrain){
+    //         trainingValues = tempData;
+    //     } else {
+    //         testValues = tempData;
+    //     }
+    //
+    // }
+}
+
+
+bool Data::initMNIST(char* filename){
+    return false;
+ //    // MNIST parsing not currently working
+ //    int bufSize = strlen(filename) + 64;
+ //    char buf[bufSize];
+ //    char* testLabels = (char*) "t10k-labels.idx1-ubyte";
+ //    char* testImgs = (char*) "t10k-images.idx3-ubyte";
+ //    char* trainLabels = (char*) "train-labels.idx1-ubyte";
+ //    char* trainImgs = (char*) "train-images.idx3-ubyte";
+ //
+ //    strncpy(buf, filename, bufSize);
+ //    strcat(buf, testImgs);
+ //    int testImgFd = open(buf, O_RDONLY);
+ //    strncpy(buf, filename, bufSize);
+ //    strcat(buf, testLabels);
+ //    int testLabelFd = open(buf, O_RDONLY);
+ //
+ //    strncpy(buf, filename, bufSize);
+ //    strcat(buf, trainImgs);
+ //    int trainImgFd = open(buf, O_RDONLY);
+ //    strncpy(buf, filename, bufSize);
+ //    strcat(buf, trainLabels);
+ //    int trainLabelFd = open(buf, O_RDONLY);
+ //
+ //    if(testImgFd < 0 || testLabelFd < 0 || trainImgFd < 0 || trainLabelFd < 0){
+ //        std::cerr << "Unable to open files" << std::endl;
+ //        close(testImgFd);
+ //        close(testLabelFd);
+ //        close(trainImgFd);
+ //        close(trainLabelFd);
+ //        return false;
+ //    }
+ //
+ //    struct stat stats;
+ //    fstat(testImgFd, &stats);
+ //    size_t testImgSize = stats.st_size;
+ //    fstat(testLabelFd, &stats);
+ //    size_t testLabelSize = stats.st_size;
+ //    fstat(trainImgFd, &stats);
+ //    size_t trainImgSize = stats.st_size;
+ //    fstat(trainLabelFd, &stats);
+ //    size_t trainLabelSize = stats.st_size;
+ //
+ //    // Load Training data
+ //    std::cout << "Loading training data:" << std::endl;
+ //    void* labels = mmap(NULL, trainLabelSize, PROT_READ, MAP_PRIVATE, trainLabelFd, 0);
+ //    void* imgs = mmap(NULL, trainImgSize, PROT_READ, MAP_PRIVATE, trainImgFd, 0);
+ //
+ //    if(labels == MAP_FAILED || imgs == MAP_FAILED){
+ //        std::cerr << "File Mapping failed" << std::endl;
+ //        munmap(labels, trainLabelSize);
+ //        munmap(imgs, trainImgSize);
+ //        close(testImgFd);
+ //        close(testLabelFd);
+ //        close(trainImgFd);
+ //        close(trainLabelFd);
+ //        return false;
+ //    }
+ //
+ //    parseMinstData(labels, imgs, true);
+ //    munmap(labels, trainLabelSize);
+ //    munmap(imgs, trainImgSize);
+ // // Load Test data
+ //    std::cout << "Loading test data:" << std::endl;
+ //    labels = mmap(NULL, testLabelSize, PROT_READ, MAP_PRIVATE, testLabelFd, 0);
+ //    imgs = mmap(NULL, testImgSize, PROT_READ, MAP_PRIVATE, testImgFd, 0);
+ //
+ //    if(labels == MAP_FAILED || imgs == MAP_FAILED){
+ //        std::cerr << "File Mapping failed" << std::endl;
+ //        munmap(labels, testLabelSize);
+ //        munmap(imgs, testImgSize);
+ //        close(testImgFd);
+ //        close(testLabelFd);
+ //        close(trainImgFd);
+ //        close(trainLabelFd);
+ //        return false;
+ //    }
+ //
+ //    parseMinstData(labels, imgs, false);
+ //    munmap(labels, testLabelSize);
+ //    munmap(imgs, testImgSize);
+ //    close(testImgFd);
+ //    close(testLabelFd);
+ //    close(trainImgFd);
+ //    close(trainLabelFd);
+ //    return true;
 }
 
 bool Data::initMush(char* fileName){

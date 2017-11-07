@@ -1,3 +1,12 @@
+/*
+	Edward Nestor
+	CSCI 402
+	BPANN - simple back propagation neural network
+
+	bpann.h -- contains typedefs for some common types used through out the program.
+    Also contains definitions for some IO and miscelanious functions contained in
+    bpann.cpp.
+*/
 #ifndef BPANN_H
 #define BPANN_H
 
@@ -8,7 +17,6 @@ void printMatrix(Matrix m);
 void printVector(Vector v);
 
 double rand_double();
-void epochResults(double accuracy, std::vector<Matrix> weights);
 void printError(const char* msg);
 
 #endif

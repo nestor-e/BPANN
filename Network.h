@@ -1,3 +1,12 @@
+/*
+	Edward Nestor
+	CSCI 402
+	BPANN - simple back propagation neural network
+
+	Network.h -- contains the definition for the Network class, which represents
+    an artificial neural network by a set of matricies representing edge weights,
+    as well as sets of vector representing outputs and errors.
+*/
 #ifndef NETWORK_H
 #define NETWORK_H
 
@@ -31,10 +40,11 @@ class Network{
     public:
         Network(int inputSize, std::vector<int> top, double learningSpeed);
         void randomizeWeights(double min, double max);
-        void trainingEpoch(Data data);
-        void testEpoch(Data data);
+        double trainingEpoch(Data data);
+        double testEpoch(Data data);
         bool compareResult(Vector expected);
         Vector getResult();
+        void printWeights();
         static double sigmoid(double x);
         void test();
 

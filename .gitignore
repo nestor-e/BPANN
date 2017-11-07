@@ -1,4 +1,6 @@
-
-BpNetwork
+NeuralNet
+NeuralNet_Opt
+Settings*.txt
+settings*.txt
 *.o
 Data

@@ -1,3 +1,11 @@
+/*
+	Edward Nestor
+	CSCI 402
+	BPANN - simple back propagation neural network
+
+	Network.cpp -- contains all logic for a generic neural network with sigmoidal
+    activation function and back propagation weight training.
+*/
 #include "Network.h"
 #include <vector>
 #include <tuple>
@@ -161,9 +169,9 @@ bool Network::compareResult(Vector expected){
     return match;
 }
 
-void Network::testEpoch(Data data){
-    if(topology.size() <= 0){
-        return;
+double Network::testEpoch(Data data){
+    if(topology.size() <= 0 || data.testCount() <= 0){
+        return 0;
     }
 
     int items = data.testCount();
@@ -181,13 +189,12 @@ void Network::testEpoch(Data data){
             printError("Mismatched size training example found.");
         }
     }
-    double accuracy = ((double) correct) / items;
-    epochResults(accuracy, weights);
+    return ((double) correct) / items;
 }
 
-void Network::trainingEpoch(Data data){
-    if(topology.size() <= 0){
-        return;
+double Network::trainingEpoch(Data data){
+    if(topology.size() <= 0 || data.trainCount() <= 0){
+        return 0;
     }
 
     int items = data.trainCount();
@@ -200,14 +207,21 @@ void Network::trainingEpoch(Data data){
             forward(in);
             if(compareResult(out)){
                 correct++;
+            } else {
+                backPropagate(out, in);
             }
-            backPropagate(out, in);
         } else {
             printError("Mismatched size training example found.");
         }
     }
-    double accuracy = ((double) correct) / items;
-    epochResults(accuracy, weights);
+    return ((double) correct) / items;
+}
+
+void Network::printWeights(){
+    for(int i = 0; i <= outputLayer; i++){
+        std::cout << "Layer " << i + 1 << ":" <<std::endl;
+        printMatrix(weights[i]);
+    }
 }
 
 
